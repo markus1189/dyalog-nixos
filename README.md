@@ -15,7 +15,9 @@ You can also pass the path of the `*.deb` source to the `nix-build` of dyalog.ni
 
 1. Change into the `ride` dir and run `nix-build`
 2. Run `./result/bin/ride`
-3. Connect to remote session, which should run on the default port
+3. There are two alternatives:
+  a. Connect to remote session, which should run on the default port
+  b. Use `Start` and specify the full path to the `dyalog/result/bin/dyalog` executable
 
 ## Links:
 
