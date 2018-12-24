@@ -46,7 +46,9 @@ in
       done
 
       # set a compatible TERM variable, otherwise redrawing is broken
-      wrapProgram $out/dyalog --set TERM xterm --set SESSION_FILE $out/default.dse
+      wrapProgram $out/dyalog \
+                  --set TERM xterm \
+                  --set SESSION_FILE $out/default.dse
 
       ln -s $out/dyalog $out/bin/dyalog
     '';
