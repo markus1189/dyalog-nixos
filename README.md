@@ -7,7 +7,7 @@ This repository contains two `*.nix` files to install dyalog APL (https://www.dy
 1. Request your download: https://my.dyalog.com/#DownloadDyalog
 2. Download the `*.deb` file and put it into the same directory as `dyalog.nix`
 3. Change into the `dyalog` dir and run `nix-build`
-4. Run `env RIDE_INIT="SERVE:0.0.0.0:4502" ./result/bin/dyalog +s -q`
+4. Run `env RIDE_INIT="SERVE:127.0.0.1:4502" ./result/bin/dyalog +s -q`
 
 You can also pass the path of the `*.deb` source to the `nix-build` of dyalog.nix as an argument.
 
