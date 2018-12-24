@@ -17,6 +17,10 @@ You can also pass the path of the `*.deb` source to the `nix-build` of dyalog.ni
 2. Run `./result/bin/ride`
 3. Connect to remote session, which should run on the default port
 
+## Links:
+
+You can find documentation on `dyalog` and `ride` here: https://www.dyalog.com/documentation_170.htm
+
 ## And the most important thing
 
 Happy Hacking!
