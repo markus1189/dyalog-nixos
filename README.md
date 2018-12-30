@@ -19,6 +19,13 @@ You can also pass the path of the `*.deb` source to the `nix-build` of dyalog.ni
   a. Connect to remote session, which should run on the default port
   b. Use `Start` and specify the full path to the `dyalog/result/bin/dyalog` executable
 
+## Using the overlay
+
+You can also use the `overlay.nix` file to add `dyalog` and `ride` to
+your available packages.  See
+https://nixos.org/nixpkgs/manual/#chap-overlays for information on how
+to include it.
+
 ## Links:
 
 You can find documentation on `dyalog` and `ride` here: https://www.dyalog.com/documentation_170.htm
