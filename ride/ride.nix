@@ -67,13 +67,16 @@ let
   drv = stdenv.mkDerivation rec {
     name = "ride-${version}";
 
-    version = "4.1.3366";
+    version = "4.2.3437-1";
 
     shortVersion = stdenv.lib.concatStringsSep "." (stdenv.lib.take 2 (stdenv.lib.splitString "." version));
 
+    # deal with 4.2.3437 having a '-1' suffix...
+    cleanedVersion = builtins.replaceStrings ["-1"] [""] version;
+
     src = fetchurl {
-      url = "https://github.com/Dyalog/ride/releases/download/v${version}/ride-${version}_linux.amd64.deb";
-      sha256 = "13a1z3wggkcmqin2ia4zf37gmyjc4val68g50f7lxacvv8v8jv9w";
+      url = "https://github.com/Dyalog/ride/releases/download/v${cleanedVersion}/ride-${version}_amd64.deb";
+      sha256 = "0pw51z8kifmbss6vnljhskf9k02iw52p5r3rfj9kaapprifdk66i";
     };
 
     nativeBuildInputs = [ dpkg ];
