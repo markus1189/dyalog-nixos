@@ -28,7 +28,7 @@ to include it.
 
 ## Links:
 
-You can find documentation on `dyalog` and `ride` here: https://www.dyalog.com/documentation_170.htm
+You can find documentation on `dyalog` and `ride` here: https://www.dyalog.com/documentation_171.htm
 
 ## And the most important thing
 
