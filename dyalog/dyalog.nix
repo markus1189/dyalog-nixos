@@ -1,37 +1,41 @@
-{stdenv, xorg, glibc, libiodbc, dpkg, makeWrapper}:
+{stdenv, xorg, glibc, libiodbc, dpkg, makeWrapper, ncurses5, fetchurl}:
 
 let
   dyalogLibPath = stdenv.lib.makeLibraryPath (with xorg; [
     stdenv.cc.cc.lib
     glibc
     libiodbc
+    ncurses5
   ]);
 in
-  stdenv.mkDerivation rec {
-    src = ./linux_64_17.0.34941_unicode.x86_64.deb;
+stdenv.mkDerivation rec {
+  src = fetchurl {
+    url = "https://www.dyalog.com/uploads/php/download.dyalog.com/download.php?file=linux_64_${version}_unicode.x86_64.deb";
+      sha256 = "1117g1pgsqwf5rz6z90jwyf7a2wr5x6p1xamjhbrka0c09csd1b4";
+  };
 
-    name = "dyalog-${version}";
+  name = "dyalog-${version}";
 
-    version = "17.0";
+  version = "17.1.36845";
 
-    patch = "34941";
+  shortVersion = stdenv.lib.concatStringsSep "." (stdenv.lib.take 2 (stdenv.lib.splitString "." version));
 
-    nativeBuildInputs = [ dpkg ];
+  nativeBuildInputs = [ dpkg ];
 
-    buildInputs = [ makeWrapper ];
+  buildInputs = [ makeWrapper ];
 
-    unpackPhase = "dpkg-deb -x $src .";
+  unpackPhase = "dpkg-deb -x $src .";
 
-    installPhase = ''
+  installPhase = ''
       mkdir -p $out/ $out/bin
-      mv opt/mdyalog/${version}/64/unicode/* $out/
+      mv opt/mdyalog/${shortVersion}/64/unicode/* $out/
 
       # Fix for 'lib/cxdya63u64u.so' which for some reason needs .1 instead of packaged .2
       ln -s $out/lib/libodbcinst.so.2 $out/lib/libodbcinst.so.1
       ln -s $out/lib/libodbc.so.2 $out/lib/libodbc.so.1
     '';
 
-    preFixup = ''
+  preFixup = ''
       for lib in $out/lib/*.so; do
         patchelf --set-rpath "$out/lib:${dyalogLibPath}" \
                  $lib
@@ -50,4 +54,4 @@ in
 
       ln -s $out/dyalog $out/bin/dyalog
     '';
-  }
+}
