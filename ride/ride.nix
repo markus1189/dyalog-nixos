@@ -5,7 +5,7 @@
   cups,
   dbus_daemon,
   dpkg,
-  electron,
+  electron_6,
   expat,
   fetchurl,
   fontconfig,
@@ -62,21 +62,21 @@ let
   electronLauncher = writeScript "rideWrapper" ''
     #!${runtimeShell}
     set -e
-    ${electron}/bin/electron TODO/resources/app
+    ${electron_6}/bin/electron TODO/resources/app
   '';
   drv = stdenv.mkDerivation rec {
     name = "ride-${version}";
 
-    version = "4.2.3437-1";
+    version = "4.3.3463-1";
 
     shortVersion = stdenv.lib.concatStringsSep "." (stdenv.lib.take 2 (stdenv.lib.splitString "." version));
 
-    # deal with 4.2.3437 having a '-1' suffix...
+    # deal with 4.3.3463 having a '-1' suffix...
     cleanedVersion = builtins.replaceStrings ["-1"] [""] version;
 
     src = fetchurl {
       url = "https://github.com/Dyalog/ride/releases/download/v${cleanedVersion}/ride-${version}_amd64.deb";
-      sha256 = "0pw51z8kifmbss6vnljhskf9k02iw52p5r3rfj9kaapprifdk66i";
+      sha256 = "0rkh7c1m1xflapb510vjv4d1q4sqj63y5mlrhnqxgz1jaqz6aap7";
     };
 
     nativeBuildInputs = [ dpkg ];
