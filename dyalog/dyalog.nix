@@ -10,13 +10,13 @@ let
 in
 stdenv.mkDerivation rec {
   src = fetchurl {
-    url = "https://www.dyalog.com/uploads/php/download.dyalog.com/download.php?file=linux_64_${version}_unicode.x86_64.deb";
-      sha256 = "1117g1pgsqwf5rz6z90jwyf7a2wr5x6p1xamjhbrka0c09csd1b4";
+    url = "https://www.dyalog.com/uploads/php/download.dyalog.com/download.php?file=${shortVersion}/linux_64_${version}_unicode.x86_64.deb";
+      sha256 = "1i58yc229rqba9rgjqn9i09mf8kn32qhds0x2z3f9vpjzfj7a936";
   };
 
   name = "dyalog-${version}";
 
-  version = "17.1.36845";
+  version = "18.0.38756";
 
   shortVersion = stdenv.lib.concatStringsSep "." (stdenv.lib.take 2 (stdenv.lib.splitString "." version));
 
