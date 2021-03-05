@@ -3,9 +3,11 @@
 This repository contains a `nix` definition to install dyalog APL
 (https://www.dyalog.com/) and RIDE (https://github.com/Dyalog/ride).
 
-## Howto:
+## Howto
 
-Just run `nix-build` :)
+Run `nix-shell` in the directory, providing you with both `dyalog` and
+`ride` in your path.  Afterwards you can open RIDE and tell it to
+launch `dyalog` (available in PATH).
 
 ## Using the overlay
 

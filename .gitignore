@@ -1,2 +1,3 @@
 *.deb
 */result
+/.direnv/
