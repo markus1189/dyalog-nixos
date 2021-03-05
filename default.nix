@@ -1,6 +1,6 @@
 { pkgs ? import <nixpkgs> {}}:
 
 {
-  dyalog = pkgs.callPackage ./dyalog {};
-  ride = pkgs.callPackage ./ride {};
+  dyalog = pkgs.callPackage ./dyalog.nix {};
+  ride = pkgs.callPackage ./ride.nix {};
 }

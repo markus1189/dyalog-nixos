@@ -1,33 +1,35 @@
-{
-  alsaLib,
-  atk,
-  cairo,
-  cups,
-  dbus_daemon,
-  dpkg,
-  electron_6,
-  expat,
-  fetchurl,
-  fontconfig,
-  gdk_pixbuf,
-  glib,
-  glibc,
-  gnome2 ,
-  gtk3,
-  libpthreadstubs,
-  libxcb,
-  makeWrapper,
-  nspr,
-  nss,
-  pango,
-  runtimeShell,
-  stdenv,
-  writeScript,
-  xorg
+{ alsaLib
+, atk
+, cairo
+, cups
+, dbus_daemon
+, dpkg
+, electron_6
+, expat
+, fetchurl
+, fetchFromGitHub
+, fontconfig
+, gdk_pixbuf
+, glib
+, glibc
+, gnome2
+, gtk3
+, libpthreadstubs
+, libxcb
+, lib
+, makeWrapper
+, nspr
+, nss
+, pango
+, runtimeShell
+, stdenv
+, util-linux
+, writeScript
+, xorg
 }:
 
 let
-  libPath = stdenv.lib.makeLibraryPath (with xorg; [
+  libPath = lib.makeLibraryPath (with xorg; [
     alsaLib
     atk
     cairo
@@ -64,24 +66,24 @@ let
     set -e
     ${electron_6}/bin/electron TODO/resources/app
   '';
-  drv = stdenv.mkDerivation rec {
-    name = "ride-${version}";
 
+  drv = stdenv.mkDerivation rec {
+    pname = "ride";
     version = "4.3.3463-1";
 
-    shortVersion = stdenv.lib.concatStringsSep "." (stdenv.lib.take 2 (stdenv.lib.splitString "." version));
+    shortVersion = lib.concatStringsSep "." (lib.take 2 (lib.splitString "." version));
 
-    # deal with 4.3.3463 having a '-1' suffix...
-    cleanedVersion = builtins.replaceStrings ["-1"] [""] version;
+    # deal with '-1' suffix...
+    cleanedVersion = builtins.replaceStrings [ "-1" ] [ "" ] version;
 
     src = fetchurl {
       url = "https://github.com/Dyalog/ride/releases/download/v${cleanedVersion}/ride-${version}_amd64.deb";
-      sha256 = "0rkh7c1m1xflapb510vjv4d1q4sqj63y5mlrhnqxgz1jaqz6aap7";
+      sha256 = "sha256:0rkh7c1m1xflapb510vjv4d1q4sqj63y5mlrhnqxgz1jaqz6aap7";
     };
 
     nativeBuildInputs = [ dpkg ];
 
-    buildInputs = [ makeWrapper ];
+    buildInputs = [ makeWrapper util-linux ];
 
     unpackPhase = "dpkg-deb -x $src .";
 
@@ -107,4 +109,4 @@ let
     '';
   };
 in
-  drv
+drv
