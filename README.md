@@ -9,6 +9,14 @@ Run `nix-shell` in the directory, providing you with both `dyalog` and
 `ride` in your path.  Afterwards you can open RIDE and tell it to
 launch `dyalog` (available in PATH).
 
+## Troubleshooting
+
+If you get 404 for dyalog or ride download:
+  - dyalog: find new version at https://www.dyalog.com/download-zone.htm
+  - ride: find new version at  https://github.com/Dyalog/ride/releases
+
+and update the corresponding files.
+
 ## Using the overlay
 
 You can also use the `overlay.nix` file to add `dyalog` and `ride` to
