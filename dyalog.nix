@@ -1,7 +1,7 @@
-{stdenv, xorg, glibc, libiodbc, dpkg, makeWrapper, ncurses5, fetchurl}:
+{stdenv, xorg, glibc, libiodbc, dpkg, makeWrapper, ncurses5, fetchurl, lib}:
 
 let
-  dyalogLibPath = stdenv.lib.makeLibraryPath (with xorg; [
+  dyalogLibPath = lib.makeLibraryPath (with xorg; [
     stdenv.cc.cc.lib
     glibc
     libiodbc
@@ -17,7 +17,7 @@ stdenv.mkDerivation rec {
   name = "dyalog-${version}";
   version = "18.0.39712";
 
-  shortVersion = stdenv.lib.concatStringsSep "." (stdenv.lib.take 2 (stdenv.lib.splitString "." version));
+  shortVersion = lib.concatStringsSep "." (lib.take 2 (lib.splitString "." version));
 
   nativeBuildInputs = [ dpkg ];
 
