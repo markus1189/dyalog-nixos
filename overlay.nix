@@ -1,6 +1,6 @@
 self: super:
 
 {
-  dyalog = self.callPackage ./dyalog.nix {};
-  ride = self.callPackage ./ride.nix {};
+  dyalog = super.callPackage ./dyalog.nix {};
+  ride = super.callPackage ./ride.nix {};
 }
