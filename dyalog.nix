@@ -11,11 +11,11 @@ in
 stdenv.mkDerivation rec {
   src = fetchurl {
     url = "https://www.dyalog.com/uploads/php/download.dyalog.com/download.php?file=${shortVersion}/linux_64_${version}_unicode.x86_64.deb";
-      sha256 = "sha256:03rb9539xd882lk9mwc3m041a6rjdlfihrnfkk9y7rmkfyqrnq2v";
+      sha256 = "sha256-pA/WGTA6YvwG4MgqbiPBLKSKPtLGQM7BzK6Bmyz5pmM=";
   };
 
   name = "dyalog-${version}";
-  version = "18.0.40684";
+  version = "18.2.45405";
 
   shortVersion = lib.concatStringsSep "." (lib.take 2 (lib.splitString "." version));
 

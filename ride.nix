@@ -2,14 +2,14 @@
 , atk
 , cairo
 , cups
-, dbus_daemon
+, dbus
 , dpkg
-, electron_6
+, electron
 , expat
 , fetchurl
 , fetchFromGitHub
 , fontconfig
-, gdk_pixbuf
+, gdk-pixbuf
 , glib
 , glibc
 , gnome2
@@ -34,10 +34,10 @@ let
     atk
     cairo
     cups
-    dbus_daemon.lib
+    dbus.lib
     expat
     fontconfig
-    gdk_pixbuf
+    gdk-pixbuf
     glib
     glibc
     gnome2.GConf
@@ -64,12 +64,12 @@ let
   electronLauncher = writeScript "rideWrapper" ''
     #!${runtimeShell}
     set -e
-    ${electron_6}/bin/electron TODO/resources/app
+    ${electron}/bin/electron TODO/resources/app
   '';
 
   drv = stdenv.mkDerivation rec {
     pname = "ride";
-    version = "4.3.3463-1";
+    version = "4.4.3732-1";
 
     shortVersion = lib.concatStringsSep "." (lib.take 2 (lib.splitString "." version));
 
@@ -78,7 +78,7 @@ let
 
     src = fetchurl {
       url = "https://github.com/Dyalog/ride/releases/download/v${cleanedVersion}/ride-${version}_amd64.deb";
-      sha256 = "sha256:0rkh7c1m1xflapb510vjv4d1q4sqj63y5mlrhnqxgz1jaqz6aap7";
+      sha256 = "sha256-kPqs/Xqk8cekQuMIbgIWOnUS+0twpTjtFSpkuP9Ynoo=";
     };
 
     nativeBuildInputs = [ dpkg ];
