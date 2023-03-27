@@ -19,12 +19,13 @@ If you get 404 for dyalog or ride download:
 
 and update the corresponding files.
 
-## Using the overlay
+## Using the flake
 
-You can also use the `overlay.nix` file to add `dyalog` and `ride` to
-your available packages.  See
-https://nixos.org/nixpkgs/manual/#chap-overlays for information on how
-to include it.
+You can run dyalog and RIDE using the nix flake like this:
+
+```
+nix shell github:markus1189/dyalog-nixos
+```
 
 ## Links:
 

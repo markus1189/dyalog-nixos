@@ -14,26 +14,9 @@
         "type": "indirect"
       }
     },
-    "ride": {
-      "flake": false,
-      "locked": {
-        "lastModified": 1678430185,
-        "narHash": "sha256-L813j39dupIofj8r8Z2b599tXJupCo37vERRZT2AVrI=",
-        "owner": "Dyalog",
-        "repo": "ride",
-        "rev": "bf599779e0c212bbec0aae5de78cf5dc443dd95b",
-        "type": "github"
-      },
-      "original": {
-        "owner": "Dyalog",
-        "repo": "ride",
-        "type": "github"
-      }
-    },
     "root": {
       "inputs": {
-        "nixpkgs": "nixpkgs",
-        "ride": "ride"
+        "nixpkgs": "nixpkgs"
       }
     }
   },
