@@ -1,112 +1,67 @@
-{ alsaLib
-, atk
-, cairo
-, cups
-, dbus
-, dpkg
-, electron
-, expat
-, fetchurl
-, fetchFromGitHub
-, fontconfig
-, gdk-pixbuf
-, glib
-, glibc
-, gnome2
-, gtk3
-, libpthreadstubs
-, libxcb
+{ src
+, rev
 , lib
+, fetchFromGitHub
+, buildNpmPackage
 , makeWrapper
-, nspr
-, nss
-, pango
-, runtimeShell
-, stdenv
-, util-linux
-, writeScript
-, xorg
+, python3
+, electron
 }:
 
 let
-  libPath = lib.makeLibraryPath (with xorg; [
-    alsaLib
-    atk
-    cairo
-    cups
-    dbus.lib
-    expat
-    fontconfig
-    gdk-pixbuf
-    glib
-    glibc
-    gnome2.GConf
-    pango
-    gtk3
-    libpthreadstubs
-    libxcb
-    nspr
-    nss
-    stdenv.cc.cc.lib
+  pname = "ride";
 
-    libX11
-    libXcomposite
-    libXcursor
-    libXdamage
-    libXext
-    libXfixes
-    libXi
-    libXrandr
-    libXrender
-    libXScrnSaver
-    libXtst
-  ]);
-  electronLauncher = writeScript "rideWrapper" ''
-    #!${runtimeShell}
-    set -e
-    ${electron}/bin/electron TODO/resources/app
-  '';
+  packageInfo = builtins.fromJSON (builtins.readFile (src + "/package.json"));
 
-  drv = stdenv.mkDerivation rec {
-    pname = "ride";
-    version = "4.4.3732-1";
+  version = lib.concatStringsSep "." (lib.take 2 (lib.splitString "." packageInfo.version));
 
-    shortVersion = lib.concatStringsSep "." (lib.take 2 (lib.splitString "." version));
-
-    # deal with '-1' suffix...
-    cleanedVersion = builtins.replaceStrings [ "-1" ] [ "" ] version;
-
-    src = fetchurl {
-      url = "https://github.com/Dyalog/ride/releases/download/v${cleanedVersion}/ride-${version}_amd64.deb";
-      sha256 = "sha256-kPqs/Xqk8cekQuMIbgIWOnUS+0twpTjtFSpkuP9Ynoo=";
+  versionJSON = builtins.toJSON {
+    versionInfo = {
+      inherit version rev;
+      date = "unknown (built by Nix)";
     };
-
-    nativeBuildInputs = [ dpkg ];
-
-    buildInputs = [ makeWrapper util-linux ];
-
-    unpackPhase = "dpkg-deb -x $src .";
-
-    installPhase = ''
-      mkdir -p $out/
-      mv opt/ride-${shortVersion}/* $out/
-
-      mkdir $out/bin
-      cp ${electronLauncher} $out/bin/ride
-      sed -i -e "s|TODO|$out|" $out/bin/ride
-    '';
-
-    preFixup = ''
-      for lib in $out/*.so; do
-        patchelf --set-rpath "${libPath}" $lib
-      done
-
-      for bin in $out/Ride-${shortVersion}; do
-        patchelf --set-interpreter $(cat $NIX_CC/nix-support/dynamic-linker) \
-                 --set-rpath "$out:${libPath}" \
-                 $bin
-      done
-    '';
   };
+
 in
-drv
+buildNpmPackage {
+
+  inherit pname version src;
+
+  npmInstallFlags = [ "--omit=dev" ];
+
+  # Skips the auto-downloaded electron binary
+  ELECTRON_SKIP_BINARY_DOWNLOAD = "1";
+
+  npmDepsHash = "sha256-mgkOTuspqoM4yZMr2u7f+0qSgzIMz033GXezuPA7rkQ=";
+
+  dontNpmBuild = true;
+
+  nativeBuildInputs = [ makeWrapper python3 ];
+
+  # This is the replacement for the `mk` script in the source repo
+  postInstall = ''
+    cd $out/lib/node_modules/${packageInfo.name}
+
+    mkdir $out/app
+    cp -r {src,lib,node_modules,D.png,favicon.*,*.html,main.js,package.json} $out/app
+
+    mkdir $out/app/style
+    cp -r style/{fonts,img,*.css} $out/app/style
+
+    cd $out/app/node_modules
+    rm -r {.bin,monaco-editor/{dev,esm,min-maps}}
+    find . -type f -name '*.map' -exec rm -rf {} +
+    find . -type d -name 'test' -exec rm -rf {} +
+
+    rm -r $out/lib
+
+    # Generate version-info
+    mkdir $out/app/_
+    echo 'D=${versionJSON}' > $out/app/_/version.js
+    echo ${version} > $out/app/_/version
+
+    # Call electron manually
+    makeWrapper ${electron}/bin/electron $out/bin/ride \
+            --add-flags $out/app
+  '';
+}
