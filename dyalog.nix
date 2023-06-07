@@ -1,17 +1,18 @@
-{stdenv, xorg, glibc, libiodbc, dpkg, makeWrapper, ncurses5, fetchurl, lib}:
+{ lib
+, stdenv
+, fetchurl
+, dpkg
+, autoPatchelfHook
+, makeWrapper
+, glib
+, ncurses5
+, unixODBC
+}:
 
-let
-  dyalogLibPath = lib.makeLibraryPath (with xorg; [
-    stdenv.cc.cc.lib
-    glibc
-    libiodbc
-    ncurses5
-  ]);
-in
 stdenv.mkDerivation rec {
   src = fetchurl {
-    url = "https://www.dyalog.com/uploads/php/download.dyalog.com/download.php?file=${shortVersion}/linux_64_${version}_unicode.x86_64.deb";
-      sha256 = "sha256-pA/WGTA6YvwG4MgqbiPBLKSKPtLGQM7BzK6Bmyz5pmM=";
+    url = "https://download.dyalog.com/download.php?file=${shortVersion}/linux_64_${version}_unicode.x86_64.deb";
+    sha256 = "sha256-pA/WGTA6YvwG4MgqbiPBLKSKPtLGQM7BzK6Bmyz5pmM=";
   };
 
   name = "dyalog-${version}";
@@ -19,38 +20,38 @@ stdenv.mkDerivation rec {
 
   shortVersion = lib.concatStringsSep "." (lib.take 2 (lib.splitString "." version));
 
-  nativeBuildInputs = [ dpkg ];
+  nativeBuildInputs = [ autoPatchelfHook makeWrapper dpkg ];
 
-  buildInputs = [ makeWrapper ];
+  buildInputs = [
+    glib
+    ncurses5
+    unixODBC
+  ];
 
   unpackPhase = "dpkg-deb -x $src .";
 
   installPhase = ''
-      mkdir -p $out/ $out/bin
-      mv opt/mdyalog/${shortVersion}/64/unicode/* $out/
+    mkdir -p $out/dyalog $out/bin
+    mv opt/mdyalog/${shortVersion}/64/unicode/* $out/dyalog
 
-      # Fix for 'lib/cxdya63u64u.so' which for some reason needs .1 instead of packaged .2
-      ln -s $out/lib/libodbcinst.so.2 $out/lib/libodbcinst.so.1
-      ln -s $out/lib/libodbc.so.2 $out/lib/libodbc.so.1
-    '';
+    cd $out/dyalog
 
-  preFixup = ''
-      for lib in $out/lib/*.so; do
-        patchelf --set-rpath "$out/lib:${dyalogLibPath}" \
-                 $lib
-      done
+    # Remove the pre-packaged RIDE build and everything that uses CEF
+    rm -r {RIDEapp,swiftshader,locales}
+    rm {lib/htmlrenderer.so,libcef.so,libEGL.so,libGLESv2.so,chrome-sandbox,*.pak,v8_context_snapshot.bin,snapshot_blob.bin,natives_blob.bin}
 
-      find $out/ -executable -not -name "*.so*" -type f | while read bin; do
-        patchelf --set-interpreter $(cat $NIX_CC/nix-support/dynamic-linker) \
-                 --set-rpath "$out/lib:${dyalogLibPath}" \
-                 $bin || true
-      done
+    # Remove files for .NET support (according to nixpkgs .NET Core 3.1 is EOL and no longer can be installed)
+    rm {libnethost.so,Dyalog.Net.*}
 
-      # set a compatible TERM variable, otherwise redrawing is broken
-      wrapProgram $out/dyalog \
-                  --set TERM xterm \
-                  --set SESSION_FILE $out/default.dse
+    # Remove other miscellaneous files and directories
+    rm -r {xfsrc,help,scriptbin,fonts}
+    rm {icudtl.dat,magic,dyalog.desktop,mapl,aplkeys.sh,aplunicd.ini,languagebar.json}
 
-      ln -s $out/dyalog $out/bin/dyalog
-    '';
+    # using flags instead of environment variables ensures that running dyalog with the -script flag works as expected
+    # set a compatible TERM variable, otherwise redrawing is broken
+    makeWrapper $out/dyalog/dyalog $out/bin/dyalog \
+        --set TERM xterm \
+        --add-flags DYALOG=$out/dyalog \
+        --add-flags SESSION_FILE=$out/dyalog/default.dse
+  '';
 }
