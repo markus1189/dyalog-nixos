@@ -50,7 +50,7 @@ stdenv.mkDerivation rec {
 
     # TERM needs to be set or else redrawing is broken
     # LD_LIBRARY_PATH is set for .NET Bridge dll to be found
-    # DYALOG needs to be set when using the `-script` flag or else redrawing is broken
+    # DYALOG needs to be set when using the `-script` flag
     makeWrapper $out/dyalog/dyalog $out/bin/dyalog \
         --set TERM xterm \
         --set DOTNET_ROOT ${dotnet-sdk_6} \
