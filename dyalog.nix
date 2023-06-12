@@ -37,14 +37,18 @@ stdenv.mkDerivation rec {
       wrapperArgs = [
         # if not set redrawing is broken
         "--set TERM xterm"
-        # .NET Bridge dll files are searched here
-        "--set LD_LIBRARY_PATH $out/dyalog"
         # needs to be set when the `-script` flag is used
         "--add-flags DYALOG=$out/dyalog"
+        # needed for default user commands to work
         "--add-flags SESSION_FILE=$out/dyalog/default.dse"
-        "--add-flags DYALOG_DOTNET=${if withDotnet then "1" else "0"}"
       ]
-      ++ lib.optional withDotnet "--set DOTNET_ROOT ${dotnet-sdk_6}";
+      ++ lib.optionals withDotnet [
+        # .Net Bridge .dll files cannot be hard linked with autoPatchelfHook, but are still runtime dependencies
+        "--prefix LD_LIBRARY_PATH : $out/dyalog"
+        # needs to be set, as there is no default install location in NixOS
+        "--set DOTNET_ROOT ${dotnet-sdk_6}"
+      ];
+
     in
     ''
       mkdir -p $out/dyalog $out/bin
@@ -56,20 +60,17 @@ stdenv.mkDerivation rec {
       rm -r {RIDEapp,swiftshader,locales}
       rm {lib/htmlrenderer.so,libcef.so,libEGL.so,libGLESv2.so,chrome-sandbox,*.pak,v8_context_snapshot.bin,snapshot_blob.bin,natives_blob.bin}
 
+      # Patch to use .NET 6.0 instead of .NET Core 3.1 (can be removed when Dyalog 19.0 releases)
+      sed -i s/3.1/6.0/g Dyalog.Net.Bridge.{deps,runtimeconfig}.json
+      
       # Remove other miscellaneous files and directories
       rm -r {xfsrc,help,scriptbin,fonts}
       rm {icudtl.dat,magic,dyalog.desktop,mapl,aplkeys.sh,aplunicd.ini,languagebar.json}
  
       makeWrapper $out/dyalog/dyalog $out/bin/dyalog ${lib.concatStringsSep " " wrapperArgs}
-
-    '' + (if withDotnet
-    then ''
-      # Patch to use .NET 6.0 instead of .NET Core 3.1 (can be removed when Dyalog 19.0 releases)
-      sed -i s/3.1/6.0/g Dyalog.Net.Bridge.{deps,runtimeconfig}.json
     ''
-    else ''
+    + lib.optionalString (!withDotnet) ''
       # Remove .NET files
       rm {libnethost.so,Dyalog.Net.Bridge.*}
-    ''
-    );
+    '';
 }
