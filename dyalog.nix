@@ -7,6 +7,8 @@
 , glib
 , ncurses5
 , unixODBC
+, dotnet-sdk_6
+, withDotnet ? true
 }:
 
 stdenv.mkDerivation rec {
@@ -30,28 +32,45 @@ stdenv.mkDerivation rec {
 
   unpackPhase = "dpkg-deb -x $src .";
 
-  installPhase = ''
-    mkdir -p $out/dyalog $out/bin
-    mv opt/mdyalog/${shortVersion}/64/unicode/* $out/dyalog
+  installPhase =
+    let
+      wrapperArgs = [
+        # if not set redrawing is broken
+        "--set TERM xterm"
+        # needs to be set when the `-script` flag is used
+        "--add-flags DYALOG=$out/dyalog"
+        # needed for default user commands to work
+        "--add-flags SESSION_FILE=$out/dyalog/default.dse"
+      ]
+      ++ lib.optionals withDotnet [
+        # .Net Bridge .dll files cannot be hard linked with autoPatchelfHook, but are still runtime dependencies
+        "--prefix LD_LIBRARY_PATH : $out/dyalog"
+        # needs to be set, as there is no default install location in NixOS
+        "--set DOTNET_ROOT ${dotnet-sdk_6}"
+      ];
 
-    cd $out/dyalog
+    in
+    ''
+      mkdir -p $out/dyalog $out/bin
+      mv opt/mdyalog/${shortVersion}/64/unicode/* $out/dyalog
 
-    # Remove the pre-packaged RIDE build and everything that uses CEF
-    rm -r {RIDEapp,swiftshader,locales}
-    rm {lib/htmlrenderer.so,libcef.so,libEGL.so,libGLESv2.so,chrome-sandbox,*.pak,v8_context_snapshot.bin,snapshot_blob.bin,natives_blob.bin}
+      cd $out/dyalog
 
-    # Remove files for .NET support (according to nixpkgs .NET Core 3.1 is EOL and no longer can be installed)
-    rm {libnethost.so,Dyalog.Net.*}
+      # Remove the pre-packaged RIDE build and everything that uses CEF
+      rm -r {RIDEapp,swiftshader,locales}
+      rm {lib/htmlrenderer.so,libcef.so,libEGL.so,libGLESv2.so,chrome-sandbox,*.pak,v8_context_snapshot.bin,snapshot_blob.bin,natives_blob.bin}
 
-    # Remove other miscellaneous files and directories
-    rm -r {xfsrc,help,scriptbin,fonts}
-    rm {icudtl.dat,magic,dyalog.desktop,mapl,aplkeys.sh,aplunicd.ini,languagebar.json}
-
-    # using flags instead of environment variables ensures that running dyalog with the -script flag works as expected
-    # set a compatible TERM variable, otherwise redrawing is broken
-    makeWrapper $out/dyalog/dyalog $out/bin/dyalog \
-        --set TERM xterm \
-        --add-flags DYALOG=$out/dyalog \
-        --add-flags SESSION_FILE=$out/dyalog/default.dse
-  '';
+      # Patch to use .NET 6.0 instead of .NET Core 3.1 (can be removed when Dyalog 19.0 releases)
+      sed -i s/3.1/6.0/g Dyalog.Net.Bridge.{deps,runtimeconfig}.json
+      
+      # Remove other miscellaneous files and directories
+      rm -r {xfsrc,help,scriptbin,fonts}
+      rm {icudtl.dat,magic,dyalog.desktop,mapl,aplkeys.sh,aplunicd.ini,languagebar.json}
+ 
+      makeWrapper $out/dyalog/dyalog $out/bin/dyalog ${lib.concatStringsSep " " wrapperArgs}
+    ''
+    + lib.optionalString (!withDotnet) ''
+      # Remove .NET files
+      rm {libnethost.so,Dyalog.Net.Bridge.*}
+    '';
 }
