@@ -35,7 +35,24 @@
     "root": {
       "inputs": {
         "nixpkgs": "nixpkgs",
-        "ride": "ride"
+        "ride": "ride",
+        "rscproxy": "rscproxy"
+      }
+    },
+    "rscproxy": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1595847950,
+        "narHash": "sha256-SVoBoAWUmQ+jWaTG7hdmyRq6By4RnmmgWZXoua19/Kg=",
+        "owner": "Dyalog",
+        "repo": "rscproxy",
+        "rev": "31de3323fb8596ff5ecbf4bacd030e542cfd8133",
+        "type": "github"
+      },
+      "original": {
+        "owner": "Dyalog",
+        "repo": "rscproxy",
+        "type": "github"
       }
     }
   },
