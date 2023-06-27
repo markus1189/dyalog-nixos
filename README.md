@@ -31,6 +31,10 @@ nix shell github:markus1189/dyalog-nixos
 
 You can find documentation on `dyalog` and `ride` here: https://www.dyalog.com/documentation.htm
 
+### Related Projects
+
+- DyalogDocker: https://github.com/Dyalog/DyalogDocker
+
 ## And the most important thing
 
 Happy Hacking!
