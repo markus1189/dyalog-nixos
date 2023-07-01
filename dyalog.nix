@@ -1,14 +1,20 @@
 { lib
 , stdenv
+
 , fetchurl
 , dpkg
 , autoPatchelfHook
 , makeWrapper
-, glib
+
 , ncurses5
-, unixODBC
+, glib
+
 , dotnet-sdk_6
 , withDotnet ? true
+
+, unixODBC
+, withSQAPL ? false
+
 , R
 , rWrapper
 , rscproxy
@@ -34,15 +40,15 @@ in
 stdenv.mkDerivation {
   inherit pname version shortVersion src;
 
+  unpackPhase = "dpkg-deb -x $src .";
+
   nativeBuildInputs = [ autoPatchelfHook makeWrapper dpkg ];
 
   buildInputs = [
-    glib # Used by Conga and .NET Bridge
     ncurses5 # Used by the dyalog binary
-    unixODBC # Used by SQAPL
-  ];
-
-  unpackPhase = "dpkg-deb -x $src .";
+    glib # Used by Conga and .NET Bridge
+  ]
+  ++ lib.optional withSQAPL unixODBC;
 
   installPhase =
     let
@@ -98,9 +104,11 @@ stdenv.mkDerivation {
     ''
     + lib.optionalString (!withDotnet) ''
       # Remove .NET files
-      rm {libnethost.so,Dyalog.Net.Bridge.*}
-    ''
-    + lib.optionalString (!withRConnect) ''
+      rm libnethost.so Dyalog.Net.Bridge.*
+    '' + lib.optionalString (!withSQAPL) ''
+      # Remove SQAPL files
+      rm lib/cxdya64u64u.so ws/sqapl.dws odbc.ini.sample sqapl.err sqapl.ini
+    '' + lib.optionalString (!withRConnect) ''
       # Remove RConnect workspace
       rm ws/rconnect.dws
     '';
