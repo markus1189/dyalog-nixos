@@ -9,16 +9,8 @@
 , ncurses5
 , glib
 
-, unixODBC
-
 , dotnet-sdk_6
 , withDotnet ? true
-
-, R
-, rWrapper
-, rscproxy
-, extraRPackages ? [ ]
-, withRConnect ? false
 
 , gtk2
 , alsa-lib
@@ -27,6 +19,15 @@
 , libXtst
 , libXScrnSaver
 , withHTMLRenderer ? false
+
+, R
+, rWrapper
+, rscproxy
+, extraRPackages ? [ ]
+, withRConnect ? false
+
+, unixODBC
+, withSQAPL ? false
 }:
 let
   pname = "dyalog";
@@ -54,7 +55,6 @@ stdenv.mkDerivation {
   buildInputs = [
     ncurses5 # Used by the dyalog binary
     glib # Used by Conga and .NET Bridge
-    unixODBC # Used by SQAPL
   ]
   ++ lib.optionals withHTMLRenderer [
     gtk2
@@ -63,7 +63,8 @@ stdenv.mkDerivation {
     libXdamage
     libXtst
     libXScrnSaver
-  ];
+  ]
+  ++ lib.optional withSQAPL unixODBC;
 
   installPhase =
     let
@@ -111,17 +112,21 @@ stdenv.mkDerivation {
     ''
     + lib.optionalString (!withDotnet) ''
       # Remove .NET files
-      rm {libnethost.so,Dyalog.Net.Bridge.*}
-    ''
-    + lib.optionalString (!withRConnect) ''
-      # Remove RConnect workspace
-      rm ws/rconnect.dws
+      rm libnethost.so Dyalog.Net.Bridge.*
     ''
     + lib.optionalString (!withHTMLRenderer) ''
       # Remove HTMLRenderer and CEF files
       rm -r locales swiftshader
       rm lib/htmlrenderer.so libcef.so libEGL.so libGLESv2.so
       rm chrome-sandbox natives_blob.bin snapshot_blob.bin icudtl.dat v8_context_snapshot.bin *.pak 
+    ''
+    + lib.optionalString (!withRConnect) ''
+      # Remove RConnect workspace
+      rm ws/rconnect.dws  
+    ''
+    + lib.optionalString (!withSQAPL) ''
+      # Remove SQAPL files
+      rm lib/cxdya64u64u.so ws/sqapl.dws odbc.ini.sample sqapl.err sqapl.ini
     '';
 
   preFixup = lib.optionalString withHTMLRenderer ''
