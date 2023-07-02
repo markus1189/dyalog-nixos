@@ -1,19 +1,32 @@
 { lib
 , stdenv
+
 , fetchurl
 , dpkg
 , autoPatchelfHook
 , makeWrapper
-, glib
+
 , ncurses5
+, glib
+
 , unixODBC
+
 , dotnet-sdk_6
 , withDotnet ? true
+
 , R
 , rWrapper
 , rscproxy
 , extraRPackages ? [ ]
 , withRConnect ? false
+
+, gtk2
+, alsa-lib
+, nss_latest
+, libXdamage
+, libXtst
+, libXScrnSaver
+, withHTMLRenderer ? false
 }:
 let
   pname = "dyalog";
@@ -34,15 +47,23 @@ in
 stdenv.mkDerivation {
   inherit pname version shortVersion src;
 
+  unpackPhase = "dpkg-deb -x $src .";
+
   nativeBuildInputs = [ autoPatchelfHook makeWrapper dpkg ];
 
   buildInputs = [
-    glib # Used by Conga and .NET Bridge
     ncurses5 # Used by the dyalog binary
+    glib # Used by Conga and .NET Bridge
     unixODBC # Used by SQAPL
+  ]
+  ++ lib.optionals withHTMLRenderer [
+    gtk2
+    alsa-lib
+    nss_latest
+    libXdamage
+    libXtst
+    libXScrnSaver
   ];
-
-  unpackPhase = "dpkg-deb -x $src .";
 
   installPhase =
     let
@@ -70,16 +91,10 @@ stdenv.mkDerivation {
 
       cd $out/dyalog
 
-
-      # File removal partially based on `https://github.com/Dyalog/DyalogDocker/blob/master/rmfiles.sh`
+      # File removal is partially based on `https://github.com/Dyalog/DyalogDocker/blob/master/rmfiles.sh`
 
       # Remove the zero-footprint RIDE
       rm -r RIDEapp
-
-      # Remove everything connected to CEF
-      rm -r locales swiftshader
-      rm lib/htmlrenderer.so libcef.so libEGL.so libGLESv2.so
-      rm chrome-sandbox natives_blob.bin snapshot_blob.bin v8_context_snapshot.bin *.pak
 
       # Remove workspaces that are not really useful
       rm ws/{apl2in,apl2pcin,ddb,display,eval,fonts,ftp,groups,max,min,ops,quadna,smdemo,smdesign,smtutor,tutor,tube,xfrcode,xlate}.dws
@@ -87,12 +102,10 @@ stdenv.mkDerivation {
       # Remove other miscellaneous files and directories
       rm -r dwa fonts help Samples scriptbin TestCertificates xfsrc xflib
       rm lib/ademo64.so lib/testcallback.so
-      rm aplkeys.sh aplunicd.ini BuildID dyalog.desktop dyalog.rt dyalog.svg icudtl.dat languagebar.json magic mapl
-
+      rm aplkeys.sh aplunicd.ini BuildID dyalog.desktop dyalog.rt dyalog.svg languagebar.json magic mapl
 
       # Patch to use .NET 6.0 instead of .NET Core 3.1 (can be removed when Dyalog 19.0 releases)
       sed -i s/3.1/6.0/g Dyalog.Net.Bridge.{deps,runtimeconfig}.json
-
 
       makeWrapper $out/dyalog/dyalog $out/bin/dyalog ${lib.concatStringsSep " " wrapperArgs}
     ''
@@ -103,5 +116,16 @@ stdenv.mkDerivation {
     + lib.optionalString (!withRConnect) ''
       # Remove RConnect workspace
       rm ws/rconnect.dws
+    ''
+    + lib.optionalString (!withHTMLRenderer) ''
+      # Remove HTMLRenderer and CEF files
+      rm -r locales swiftshader
+      rm lib/htmlrenderer.so libcef.so libEGL.so libGLESv2.so
+      rm chrome-sandbox natives_blob.bin snapshot_blob.bin icudtl.dat v8_context_snapshot.bin *.pak 
     '';
+
+  preFixup = lib.optionalString withHTMLRenderer ''
+    # `libudev.so` is a runtime dependency of CEF
+    patchelf $out/dyalog/libcef.so --add-needed libudev.so
+  '';
 }
