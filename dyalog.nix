@@ -82,9 +82,16 @@ stdenv.mkDerivation {
         # needs to be set, as there is no default install location when using Nix
         "--set DOTNET_ROOT ${dotnet-sdk_6}"
       ]
+      ++ lib.optionals withHTMLRenderer [
+        # makes the next flag be passed to CEF
+        "--add-flags -cef"
+        # disable creation of the GPUCache directory
+        "--add-flags --disable-gpu-shader-disk-cache"
+      ]
       ++ lib.optional withRConnect
         # dyalog uses the PATH to determine the location of R files
         "--prefix PATH : ${wrappedR}/bin";
+
     in
     ''
       mkdir -p $out/dyalog $out/bin
