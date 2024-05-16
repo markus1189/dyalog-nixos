@@ -1,3 +1,9 @@
+# DEPRECATED
+
+this repo is no longer necessary, since both packages are available in nixpkgs, starting at 24.05
+
+(https://github.com/markus1189/dyalog-nixos/issues/16)
+
 # Dyalog APL and RIDE Editor
 
 This repository contains a `nix` definition to install dyalog APL
